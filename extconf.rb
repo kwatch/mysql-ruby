@@ -1,9 +1,11 @@
 require 'mkmf'
 
-def exec_command(command)
+def exec_command(command, flag_raise=false)
   output = `#{command}`
-  $? == 0  or die "failed: #{command}"
-  return output.chomp
+  return output.chomp if $? == 0
+  msg = "failed: #{command}"
+  raise msg if flag_raise
+  die msg
 end
 
 def die(message)
@@ -27,12 +29,23 @@ elsif mc = with_config('mysql-config') then
   $CPPFLAGS += ' ' + cflags
   $libs = libs + " " + $libs
 else
-  inc, lib = dir_config('mysql', '/usr/local')
-  libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
-  while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
-    #exit 1 if libs.empty?
-    !libs.empty?  or die "can't find mysql client library."
-    have_library(libs.shift)
+  puts "Trying to detect MySQL configuration with mysql_config command..."
+  begin
+    cflags = exec_command("mysql_config --cflags", true)
+    libs   = exec_command("mysql_config --libs", true)
+    puts "Succeeded to detect MySQL configuration with mysql_config command."
+    $CPPFLAGS << " #{cflags.strip}"
+    $libs = "#{libs.strip} #{$libs}"
+  rescue RuntimeError, Errno::ENOENT => ex
+    puts "Failed to detect MySQL configuration with mysql_config command."
+    puts "Trying to detect MySQL client library..."
+    inc, lib = dir_config('mysql', '/usr/local')
+    libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
+    while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
+      #exit 1 if libs.empty?
+      !libs.empty?  or die "can't find mysql client library."
+      have_library(libs.shift)
+    end
   end
 end
 
