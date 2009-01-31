@@ -31,20 +31,30 @@ elsif mc = with_config('mysql-config') then
 else
   puts "Trying to detect MySQL configuration with mysql_config command..."
   begin
-    cflags = exec_command("mysql_config --cflags", true)
-    libs   = exec_command("mysql_config --libs", true)
-    puts "Succeeded to detect MySQL configuration with mysql_config command."
-    $CPPFLAGS << " #{cflags.strip}"
-    $libs = "#{libs.strip} #{$libs}"
-  rescue RuntimeError, Errno::ENOENT => ex
-    puts "Failed to detect MySQL configuration with mysql_config command."
-    puts "Trying to detect MySQL client library..."
-    inc, lib = dir_config('mysql', '/usr/local')
-    libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
-    while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
-      #exit 1 if libs.empty?
-      !libs.empty?  or die "can't find mysql client library."
-      have_library(libs.shift)
+    cflags = libs = nil
+    for prefix in ["", "/usr/local/mysql/bin/", "/opt/local/mysql/bin/"]
+      begin
+        cflags = exec_command("#{prefix}mysql_config --cflags", true)
+        libs   = exec_command("#{prefix}mysql_config --libs", true)
+        break
+      rescue RuntimeError, Errno::ENOENT => ex
+        cflags = libs = nil
+      end
+    end
+    if cflags && libs
+      puts "Succeeded to detect MySQL configuration with #{prefix}mysql_config command."
+      $CPPFLAGS << " #{cflags.strip}"
+      $libs = "#{libs.strip} #{$libs}"
+    else
+      puts "Failed to detect MySQL configuration with mysql_config command."
+      puts "Trying to detect MySQL client library..."
+      inc, lib = dir_config('mysql', '/usr/local')
+      libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
+      while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
+        #exit 1 if libs.empty?
+        !libs.empty?  or die "can't find mysql client library."
+        have_library(libs.shift)
+      end
     end
   end
 end
