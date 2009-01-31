@@ -1,6 +1,7 @@
 /*	ruby mysql module
  *	$Id: mysql.c 232 2008-08-19 14:48:50Z tommy $
  */
+#define ulong unsigned long
 
 #include <ruby.h>
 #ifndef RSTRING_PTR
