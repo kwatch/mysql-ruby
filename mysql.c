@@ -17,6 +17,18 @@
 #define rb_str_set_len(str, length) (RSTRING_LEN(str) = (length))
 #endif
 
+#ifdef HAVE_RUBY_ENCODING_H
+/* Ruby 1.9.1 */
+#define rb_thread_start_timer() rb_thread_start_timer_thread()
+#define rb_thread_stop_timer()  rb_thread_stop_timer_thread()
+void rb_thread_start_timer_thread(void);
+void rb_thread_stop_timer_thread(void);
+#else
+/* Ruby 1.8.x */
+void rb_thread_start_timer(void);
+void rb_thread_stop_timer(void);
+#endif
+
 #ifdef HAVE_MYSQL_H
 #include <mysql.h>
 #include <errmsg.h>
