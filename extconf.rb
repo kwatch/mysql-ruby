@@ -1,21 +1,37 @@
 require 'mkmf'
 
+def exec_command(command)
+  output = `#{command}`
+  $? == 0  or die "failed: #{command}"
+  return output.chomp
+end
+
+def die(message)
+  $stderr.puts "*** ERROR: #{message}"
+  exit 1
+end
+
+
 if /mswin32/ =~ RUBY_PLATFORM
   inc, lib = dir_config('mysql')
-  exit 1 unless have_library("libmysql")
+  #exit 1 unless have_library("libmysql")
+  have_library("libmysql")  or die "can't find libmysql."
 elsif mc = with_config('mysql-config') then
   mc = 'mysql_config' if mc == true
-  cflags = `#{mc} --cflags`.chomp
-  exit 1 if $? != 0
-  libs = `#{mc} --libs`.chomp
-  exit 1 if $? != 0
+  #cflags = `#{mc} --cflags`.chomp
+  #exit 1 if $? != 0
+  cflags = exec_command("#{mc} --cflags")
+  #libs = `#{mc} --libs`.chomp
+  #exit 1 if $? != 0
+  libs = exec_command("#{mc} --libs")
   $CPPFLAGS += ' ' + cflags
   $libs = libs + " " + $libs
 else
   inc, lib = dir_config('mysql', '/usr/local')
   libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
   while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
-    exit 1 if libs.empty?
+    #exit 1 if libs.empty?
+    !libs.empty?  or die "can't find mysql client library."
     have_library(libs.shift)
   end
 end
@@ -28,7 +44,8 @@ if have_header('mysql.h') then
 elsif have_header('mysql/mysql.h') then
   src = "#include <mysql/errmsg.h>\n#include <mysql/mysqld_error.h>\n"
 else
-  exit 1
+  #exit 1
+  die "can't find 'mysql.h'."
 end
 
 # make mysql constant
@@ -43,9 +60,10 @@ end
 if /mswin32/ =~ RUBY_PLATFORM && !/-E/.match(cpp)
   cpp << " -E"
 end
-unless system "#{cpp} > confout" then
-  exit 1
-end
+#unless system "#{cpp} > confout" then
+#  exit 1
+#end
+exec_command("#{cpp} > confout")
 File.unlink "conftest.c"
 
 error_syms = []
