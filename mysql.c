@@ -10,6 +10,9 @@
 #ifndef RSTRING_LEN
 #define RSTRING_LEN(str) RSTRING(str)->len
 #endif
+#ifndef RARRAY_PTR
+#define RARRAY_PTR(str) RARRAY(str)->ptr
+#endif
 #ifndef HAVE_RB_STR_SET_LEN
 #define rb_str_set_len(str, length) (RSTRING_LEN(str) = (length))
 #endif
@@ -1390,12 +1393,12 @@ static VALUE stmt_execute(int argc, VALUE *argv, VALUE obj)
                     s->param.bind[i].buffer = &(s->param.buffer[i]);
                     t.second_part = 0;
                     t.neg = 0;
-                    t.second = FIX2INT(RARRAY(a)->ptr[0]);
-                    t.minute = FIX2INT(RARRAY(a)->ptr[1]);
-                    t.hour = FIX2INT(RARRAY(a)->ptr[2]);
-                    t.day = FIX2INT(RARRAY(a)->ptr[3]);
-                    t.month = FIX2INT(RARRAY(a)->ptr[4]);
-                    t.year = FIX2INT(RARRAY(a)->ptr[5]);
+                    t.second = FIX2INT(RARRAY_PTR(a)[0]);
+                    t.minute = FIX2INT(RARRAY_PTR(a)[1]);
+                    t.hour = FIX2INT(RARRAY_PTR(a)[2]);
+                    t.day = FIX2INT(RARRAY_PTR(a)[3]);
+                    t.month = FIX2INT(RARRAY_PTR(a)[4]);
+                    t.year = FIX2INT(RARRAY_PTR(a)[5]);
                     *(MYSQL_TIME*)&(s->param.buffer[i]) = t;
                 } else if (CLASS_OF(argv[i]) == cMysqlTime) {
                     MYSQL_TIME t;
