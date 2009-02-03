@@ -1,5 +1,5 @@
 /*	ruby mysql module
- *	$Id: mysql.c 232 2008-08-19 14:48:50Z tommy $
+ *	$Id: mysql.c 244 2009-02-01 08:43:39Z tommy $
  */
 #define ulong unsigned long
 
@@ -11,22 +11,20 @@
 #define RSTRING_LEN(str) RSTRING(str)->len
 #endif
 #ifndef RARRAY_PTR
-#define RARRAY_PTR(str) RARRAY(str)->ptr
+#define RARRAY_PTR(ary) RARRAY(ary)->ptr
 #endif
 #ifndef HAVE_RB_STR_SET_LEN
 #define rb_str_set_len(str, length) (RSTRING_LEN(str) = (length))
 #endif
 
-#ifdef HAVE_RUBY_ENCODING_H
-/* Ruby 1.9.1 */
-#define rb_thread_start_timer() rb_thread_start_timer_thread()
-#define rb_thread_stop_timer()  rb_thread_stop_timer_thread()
-void rb_thread_start_timer_thread(void);
-void rb_thread_stop_timer_thread(void);
-#else
+#ifdef HAVE_RB_THREAD_START_TIMER
 /* Ruby 1.8.x */
 void rb_thread_start_timer(void);
 void rb_thread_stop_timer(void);
+#else
+/* Ruby 1.9.1 */
+#define rb_thread_start_timer()
+#define rb_thread_stop_timer()
 #endif
 
 #ifdef HAVE_MYSQL_H
@@ -39,7 +37,7 @@ void rb_thread_stop_timer(void);
 #include <mysql/mysqld_error.h>
 #endif
 
-#define MYSQL_RUBY_VERSION 20800
+#define MYSQL_RUBY_VERSION 20801
 
 #define GC_STORE_RESULT_LIMIT 20
 
@@ -1403,6 +1401,7 @@ static VALUE stmt_execute(int argc, VALUE *argv, VALUE obj)
                     VALUE a = rb_funcall(argv[i], rb_intern("to_a"), 0);
                     s->param.bind[i].buffer_type = MYSQL_TYPE_DATETIME;
                     s->param.bind[i].buffer = &(s->param.buffer[i]);
+                    memset(&t, 0, sizeof(t));    /* avoid warning */
                     t.second_part = 0;
                     t.neg = 0;
                     t.second = FIX2INT(RARRAY_PTR(a)[0]);
@@ -1416,6 +1415,7 @@ static VALUE stmt_execute(int argc, VALUE *argv, VALUE obj)
                     MYSQL_TIME t;
                     s->param.bind[i].buffer_type = MYSQL_TYPE_DATETIME;
                     s->param.bind[i].buffer = &(s->param.buffer[i]);
+                    memset(&t, 0, sizeof(t));    /* avoid warning */
                     t.second_part = 0;
                     t.neg = 0;
                     t.second = NUM2INT(rb_iv_get(argv[i], "second"));

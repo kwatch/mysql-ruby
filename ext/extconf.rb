@@ -61,6 +61,7 @@ end
 
 have_func('mysql_ssl_set')
 have_func('rb_str_set_len')
+have_func('rb_thread_start_timer')
 
 if have_header('mysql.h') then
   src = "#include <errmsg.h>\n#include <mysqld_error.h>\n"
