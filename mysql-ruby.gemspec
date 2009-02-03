@@ -4,7 +4,7 @@ spec = Gem::Specification.new do |s|
   s.name     = "mysql-ruby"
   s.author   = "Masahiro TOMITA"
   s.email    = "tommy.(at).tmtm.org"
-  s.version  = "2.8.0"
+  s.version  = "2.8.0.1"
   s.date     = "2008-09-29"
   #s.platform = Gem::Platform::RUBY
   s.homepage = "http://www.tmtm.org/mysql/ruby/"
@@ -21,6 +21,7 @@ END
   ]
   #s.test_file  = "test.rb"
   s.extensions = ["ext/extconf.rb"]
+  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
 end
 
 if $0 == __FILE__
@@ -31,4 +32,3 @@ if $0 == __FILE__
 end
 
 spec
-
